@@ -136,7 +136,8 @@ def Accuracy(result, testset):
 
 
 if __name__ == '__main__':
-    dataset = loadCsv('pima-indians-diabetes.data.csv')
+    filename = 'pima-indians-diabetes.data.csv'
+    dataset = loadCsv(filename)
     j = 0
     logging.basicConfig(level=logging.DEBUG, format='%(levelname)s: %(message)s')
     while True:
