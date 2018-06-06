@@ -4,37 +4,57 @@ from matplotlib import animation as ani
 import csv
 import numpy as np
 import random
+import logging
 
-w = [0,0,0,0,0,0,0,0]  # weight vector
+w = [0, 0, 0, 0, 0, 0, 0, 0]  # weight vector
 b = 0  # bias
 yita = 0.5  # learning rate
+'''
 data = [[(1,4),1],[(0.5,2),1],[(2,2.3),1],[(1,0.5),-
 1],[(2,1),-1],[(4,1),-1],[(3.5,4),1],[(3,2.2),-1]]
 # data=[[(3, 3), 1], [(4, 3), 1], [(1, 1), -1]]
+'''
 record = []
 
 
 def loadCsv(filename):
-    lines = csv.reader(open(filename,"r"))
+    lines = csv.reader(open(filename, "r"))
     dataset = list(lines)
     for i in range(len(dataset)):
         dataset[i] = [float(x) for x in dataset[i]]
     return dataset
 
-dataset = loadCsv('pima-indians-diabetes.data.csv')
-print(len(dataset[0]))
+
+# print(len(dataset[0]))
+
+def sign(vec):
+    global w, b
+    fx = 0
+    wx = 0
+    for i in range(len(vec) - 1):
+        wx += w[i] * vec[i]
+    fx = wx + b
+    if fx > 0:
+        return 1
+    else:
+        return 0
+
+
 '''
 if y(wx+b)<=0,return false; else, return true
 '''
 
 
-def sign(vec):
-    global w,b
+def loss(vec):
+    global w, b
     res = 0
     wx = 0
-    for i in range(len(vec)-1):
-        wx += w[i]*vec[i]
-    res = vec[-1] * (wx + b)
+    for i in range(len(vec) - 1):
+        wx += w[i] * vec[i]
+    if vec[-1] == 1:
+        res = vec[-1] * (wx + b)
+    else:
+        res = (vec[-1] - 1) * (wx + b)
     if res > 0:
         return 1
     else:
@@ -47,11 +67,24 @@ update the paramaters w&b
 
 
 def update(vec):
-    global w,b,record
-    for i in range(len(vec)-1):
-        w[i] = w[i] + yita * vec[-1] * vec[i]
-    b = b + yita * vec[-1]
-    record.append([copy.copy(w),b])
+    global w, b, record
+    if vec[-1] == 1:
+        for i in range(len(vec) - 1):
+            #print('w[{0}]:{1}'.format(i, w[i]))
+            w[i] += yita * vec[-1] * vec[i]
+            #print('--->w[{0}]:{1}'.format(i, w[i]))
+        #print('b:{0}'.format(b))
+        b += yita * vec[-1]
+        #print('--->b:{0}'.format(b))
+    else:
+        for i in range(len(vec) - 1):
+            #print('w[{0}]:{1}'.format(i, w[i]))
+            w[i] += yita * (vec[-1]-1) * vec[i]
+            #print('--->w[{0}]:{1}'.format(i, w[i]))
+        #print('b:{0}'.format(b))
+        b += yita * (vec[-1]-1)
+        #print('--->b:{0}'.format(b))
+    record.append([copy.copy(w), b])
 
 
 '''
@@ -64,10 +97,13 @@ we get the answer
 def perceptron(data):
     count = 1
     for ele in data:
-        flag = sign(ele)
+        #print(w,b)
+        flag = loss(ele)
         if not flag > 0:
-            count = 1
+            # count = 1
             update(ele)
+            #print(w,b)
+            #print('-----------------------------------------')
         else:
             count += 1
     if count >= len(data):
@@ -75,9 +111,11 @@ def perceptron(data):
     else:
         return 0
 
-def Accuracy(result,testset):
+
+def Accuracy(result, testset):
     correct = 0
     for instance in testset:
+        '''
         pred = 0
         for i in range(len(result[0])):
             pred += result[0][i] * instance[i]
@@ -88,24 +126,33 @@ def Accuracy(result,testset):
             y_pred = 0
         if y_pred == instance[-1]:
             correct += 1
-    return correct/len(testset) * 100
+        '''
+        # print('y_predict:{0}<---->y:{1}'.format(sign(instance),int(instance[-1])))
+        if sign(instance) == int(instance[-1]):
+            correct += 1
+            # print(correct)
+    # print('correct:{0}<---->testsize:{1}'.format(correct,len(testset)))
+    return correct / len(testset) * 100
 
 
 if __name__ == '__main__':
-    j=1
+    dataset = loadCsv('pima-indians-diabetes.data.csv')
+    j = 0
+    logging.basicConfig(level=logging.DEBUG, format='%(levelname)s: %(message)s')
     while True:
         j += 1
-        shuffle_data = random.shuffle(dataset)
-        trainset,testset = dataset[:int(len(dataset) * 0.67)],dataset[int(len(dataset) * 0.67):]
-        perceptron(trainset)
+        random.shuffle(dataset)
+        trainset, testset = dataset[:int(len(dataset) * 0.7)], dataset[int(len(dataset) * 0.7):]
+        # print(len(trainset))
+        perceptron(dataset)
         print('step: {}'.format(j))
-        print(record[-1])
-        acc = Accuracy(record[-1],dataset)
-        print('{0}%'.format(acc))
+        print('w:{0},b:{1}'.format(w, b))
+        acc = Accuracy(record[-1], testset)
+        print('----------------{0}%'.format(acc))
         if acc > 80:
             break
-    print('weight is:{0}'.format(record[-1]))
-    print('Accuracy: {0}%'.format(acc))
+    logging.info('weight is:{0}, bias is:{1}'.format(record[-1][0],record[-1][1]))
+    logging.info('Accuracy: {0}%'.format(acc))
 '''
 x1 = []
 y1 = []
