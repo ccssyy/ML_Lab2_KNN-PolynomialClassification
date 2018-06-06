@@ -54,6 +54,8 @@ def perceptron():
             count+=1
     if count>=len(data):
         return 1
+    else:
+        return 0
 
 if __name__ == '__main__':
     while 1:
@@ -69,7 +71,7 @@ y2=[]
 # display the animation of the line change in searching process
 fig = pl.figure()
 ax = pl.axes(xlim=(-1,5),ylim=(-1,5))
-line,_=ax.plot([],[],'g',lw=2)
+line,=ax.plot([],[],'g',lw=2)
 
 def init():
     line.set_data([],[])
