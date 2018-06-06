@@ -9,8 +9,6 @@ from sklearn.datasets import make_classification
 
 # %matplotlib inline
 
-iris = datasets.load_iris()
-
 
 def shuffle_data(X, y, seed=None):
     if seed:
@@ -31,15 +29,16 @@ def normalize(X, axis=-1, p=2):
 
 # 标准化数据集X
 def standardize(X):
-    X_std = np.zeros(X.shape)
+    X_std = np.array(X)
     mean = X.mean(axis=0)
     std = X.std(axis=0)
 
     # 分母不能等于0的情况
     # X_std = (X - X.mean(axis=0)) / X.std(axis=0)
-    for col in range(np.shape(X)[1]):
-        if std[col]:
-            X_std[:, col] = (X_std[:, col] - mean[col]) / std[col]
+    for i in range(X.shape[0]):
+        for col in range(X.shape[1]):
+            if std[col]:
+                X_std[i][col] = (X_std[i][col] - mean[col]) / std[col]
 
     return X_std
 
@@ -84,8 +83,14 @@ class KNN():
         k_neighbor_labels = []
         for distance in np.sort(distances)[:k]:
             label = y_train[distances == distance]
-            k_neighbor_labels.append(label)
-        return np.array(k_neighbor_labels).reshape(-1, )
+            print('lable:{0},shape:{1}'.format(label,label.shape))
+            if label.shape[0]>1:
+                for i in range(label.shape[0]):
+                    k_neighbor_labels.append(label[i][0])
+            else:
+                k_neighbor_labels.append(label[0][0])
+        print(len(np.array(k_neighbor_labels).reshape(-1)))
+        return np.array(k_neighbor_labels).reshape(-1)[:k]
 
     # 进行标签统计，得票最多的标签就是该测试样本的预测标签
     def vote(self, one_sample, X_train, y_train, k):
@@ -93,7 +98,8 @@ class KNN():
         # print('distances\'s shape: {0}'.format(distances.shape))
         y_train = y_train.reshape(y_train.shape[0], 1)
         k_neighbor_labels = self.get_k_neighbor_labels(distances, y_train, k)
-        # print('shape of k_neighbor_labels: {0}'.format(k_neighbor_labels.shape))
+        print('shape of k_neighbor_labels: {0}'.format(k_neighbor_labels.shape))
+        print(k_neighbor_labels)
         find_label, find_count = 0, 0
         for label, count in Counter(k_neighbor_labels).items():
             if count > find_count:
@@ -112,11 +118,17 @@ class KNN():
 
 
 if __name__ == '__main__':
+    iris = datasets.load_iris()
+    iris_data = iris.data
+    iris_data = normalize(iris_data,axis=1,p=2)
+    iris_data = standardize(iris_data)
+    iris_dataset = (np.array(iris_data),np.array(iris.target))
+    print(iris_dataset)
     data = make_classification(n_samples=200, n_features=4, n_informative=2, n_redundant=2, n_repeated=0, n_classes=2)
-    print(data[0].shape,data[1].shape)
-    X,y = data[0],data[1]
+    #print(data)
+    X,y = iris_dataset[0],iris_dataset[1]
     X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=0.33,shuffle=True)
-    clf = KNN(k=10)
+    clf = KNN(k=5)
     y_pred = clf.predict(X_test,X_train,y_train)
 
     acc = accuracy(y_test,y_pred)
