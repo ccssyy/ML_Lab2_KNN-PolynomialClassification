@@ -8,7 +8,7 @@ import logging
 
 w = [0, 0, 0, 0, 0, 0, 0, 0]  # weight vector
 b = 0  # bias
-yita = 0.5  # learning rate
+yita = 0.01  # learning rate
 '''
 data = [[(1,4),1],[(0.5,2),1],[(2,2.3),1],[(1,0.5),-
 1],[(2,1),-1],[(4,1),-1],[(3.5,4),1],[(3,2.2),-1]]
@@ -148,9 +148,9 @@ if __name__ == '__main__':
         perceptron(dataset)
         print('step: {}'.format(j))
         print('w:{0},b:{1}'.format(w, b))
-        acc = Accuracy(record[-1], testset)
-        print('----------------{0}%'.format(acc))
-        if acc > 80:
+        acc = Accuracy(record[-1], dataset)
+        print('Acc---------------------------{0}%'.format(acc))
+        if acc > 78:
             break
     logging.info('weight is:{0}, bias is:{1}'.format(record[-1][0],record[-1][1]))
     logging.info('Accuracy: {0}%'.format(acc))
